@@ -1,0 +1,69 @@
+<project default="all">
+	<property name="main-class"  value="com.piy.hal.backend.Main"/>
+
+	<property name="src.dir"     value="src"/>
+
+	<property name="build.dir"   value="build"/>
+	<property name="classes.dir" value="${build.dir}/classes"/>
+	<property name="jar.dir"     value="${build.dir}/jar"/>
+	
+	 
+	<target name="compile">
+		<mkdir dir="build"/>
+		<mkdir dir="build/classes"/>
+		<mkdir dir="build/jar"/>
+		<javac debug="true" debuglevel="lines,vars,source" srcdir="src" destdir="build/classes" classpathref="lib.path.ref" encoding="UTF-8" />
+	</target>
+
+	<path id="lib.path.ref">
+		 <fileset dir="lib">
+		        <include name="**/*.jar"/>
+		 </fileset>
+	</path>
+
+
+	<target name="snappersbackend" depends="compile">
+		<delete file="build/jar/SnappersServer.jar"/>
+		<delete file="MANIFEST.MF"/>
+		<manifest file="MANIFEST.MF">
+			<attribute name="Built-By" value="${user.name}"/>
+			<attribute name="Main-Class" value="com.emerginggames.snappersbackend.SnappersServer"/>
+		</manifest>
+		<mkdir dir="build"/>
+		<mkdir dir="build/classes"/>
+		<mkdir dir="build/jar"/>
+		<jar destfile="build/jar/SnappersServer.jar" basedir="build/classes">
+			<manifest>
+				<attribute name="Main-Class" value="com.emerginggames.snappersbackend.SnappersServer"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="snappersbackendrun">
+			<java fork="true" classname="com.emerginggames.snappersbackend.SnappersServer">
+				<jvmarg value="-Xmx1024m"/>
+				<jvmarg value="-enableassertions"/>
+				<classpath>
+					<path refid="lib.path.ref"/>
+					<path location="${jar.dir}/SnappersServer.jar"/>
+				</classpath>
+			</java>
+		</target>
+
+
+	<target name="cleanup" depends="dir.check" if="dir.exists">
+		<delete>
+			<fileset dir="build/jar" includes="**/*.*"/>
+			<fileset dir="build/classes" includes="**/*.*"/>
+		</delete>
+	</target>	
+	
+	<target name="dir.check">
+	    <condition property="dir.exists">
+	      <available file="build/jar" type="dir"/>
+	    </condition>
+	  </target>
+	
+	<target name="all" depends="cleanup, compile, snappersbackend" />
+	
+</project>

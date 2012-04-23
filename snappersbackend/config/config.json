@@ -1,0 +1,10 @@
+{
+  "jdbc" : {
+    "driverName" : "com.mysql.jdbc.Driver",
+    "login" : "awsuser",
+    "maxPoolSize" : 10,
+    "minPoolSize" : 4,
+    "password" : "Hyd7eGr1",
+    "url" : "jdbc:mysql://snappersdb.cnci7wugcjof.us-east-1.rds.amazonaws.com:3306/snappersdb"
+  },
+}
