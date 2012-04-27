@@ -11,6 +11,12 @@ create table players (
 	xp_level INT default 1,
 	xp_count INT default 0,
 	hint_count INT default 3,
+	gifts_sent_count INT default 0,
+	invites_sent_count INT default 0,
+	gifts TEXT,
+	platform VARCHAR(255),
+	device VARCHAR(255),
+	version VARCHAR(255),
 	promo_id INT,
 	user_defaults TEXT
 );

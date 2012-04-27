@@ -5,8 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.apache.log4j.Logger;
 
+import com.emerginggames.snappersbackend.Friend;
 import com.emerginggames.snappersbackend.Player;
 
 
@@ -109,7 +113,7 @@ public class Dao {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					log.error("SQLException: " + e.getMessage());
 				}
 		}		
 		return p;		
@@ -141,6 +145,7 @@ public class Dao {
 				p.setXpLevel(rst.getInt("xp_level"));
 				p.setHintCount(rst.getInt("hint_count"));
 				p.setUserDefaults(rst.getString("user_defaults"));
+				p.setGifts(rst.getString("gifts"));
 			}
 		} catch (SQLException e) {
 			log.error("SQLException: " + e.getMessage());
@@ -149,13 +154,13 @@ public class Dao {
 				try {
 					rst.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					log.error("SQLException: " + e.getMessage());
 				}
 			if (stmt != null)
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					log.error("SQLException: " + e.getMessage());
 				}
 		}
 		return p;
@@ -167,9 +172,9 @@ public class Dao {
 				" xp_count = ?, " +
 				" xp_level = ?, " +
 				" user_defaults = ?, " +
-				" last_played_date = now() " +
+				" last_played_date = now(), " +
+				" gifts = NULL" +
 				" where facebook_id = ?";
-		ResultSet rst = null;
 		PreparedStatement stmt = null;
 		boolean ok = false;
 		try {
@@ -184,21 +189,83 @@ public class Dao {
 		} catch (SQLException e) {
 			log.error("SQLException: " + e.getMessage());
 		} finally {
+			if (stmt != null)
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					log.error("SQLException: " + e.getMessage());
+				}
+		}		
+		return ok;
+	}
+	
+	public void getXpOfFriends(ArrayList<Friend> friends) {
+		String q = "select facebook_id,xp_count from players\n" +
+				" where facebook_id in (";
+		HashMap<Long, Friend> friendsMap = new HashMap<Long, Friend>();
+		for (int i = 0; i < friends.size(); i++) {
+			Friend f = friends.get(i);
+			if(i>0)
+				q+=",";
+			q += ""+f.getFacebookId();
+			friendsMap.put(Long.valueOf(f.getFacebookId()), f);
+		}
+		q+=")";
+		ResultSet rst = null;
+		PreparedStatement stmt = null;
+		
+		try {
+			stmt = c.prepareStatement(q);
+			
+			rst = stmt.executeQuery();
+			while (rst.next()) {
+				Friend f = friendsMap.get(Long.valueOf(rst.getLong("facebook_id")));
+				f.setXpCount(rst.getInt("xp_count"));
+			}
+		} catch (SQLException e) {
+			log.error("SQLException: " + e.getMessage());
+		} finally {
 			if (rst != null)
 				try {
 					rst.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					log.error("SQLException: " + e.getMessage());
 				}
 			if (stmt != null)
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					log.error("SQLException: " + e.getMessage());
+				}
+		}		
+	}
+	
+	public boolean updateGift(long gift_from, long gift_to) {
+		String q1 = "update players set gifts_sent_count = gifts_sent_count + 1 where facebook_id = " + gift_from;
+		String q2 = "update players set gifts=concat_ws(',',gifts," + gift_from + ") where facebook_id = " + gift_to;
+		PreparedStatement stmt = null;
+		
+		boolean ok = false;
+		try {
+			stmt = c.prepareStatement(q1);
+			stmt.executeUpdate();
+			
+			stmt = c.prepareStatement(q2);
+			stmt.executeUpdate();
+			
+			ok = true;
+		} catch (SQLException e) {
+			log.error("SQLException: " + e.getMessage());
+		} finally {
+			if (stmt != null)
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					log.error("SQLException: " + e.getMessage());
 				}
 		}		
 		return ok;
-	}	
+	}
 	
 	public void close(boolean commit){
 		try{

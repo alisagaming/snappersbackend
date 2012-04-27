@@ -23,6 +23,7 @@ public class Player {
 	private int promoId;
 	private String userDefaults;
 	private String accessToken;
+	private String gifts;
 	
 	public static Player parseFromJSON(JSONObject json) {
 		Player player = new Player();
@@ -104,6 +105,7 @@ public class Player {
 			json.put("hint_count", getHintCount());
 			json.put("xp_count", getXpCount());
 			json.put("xp_level", getXpLevel());
+			json.put("gifts", getGifts());
 			JSONObject maxUnlockedLevelForPackDict = new JSONObject(getUserDefaults());
 			for (int i = 1; i <= LevelPacksCount; i++) {
 				if (maxUnlockedLevelForPackDict.has(""+i)) {
@@ -234,5 +236,13 @@ public class Player {
 
 	public void setUserDefaults(String userDefaults) {
 		this.userDefaults = userDefaults;
+	}
+
+	public String getGifts() {
+		return gifts;
+	}
+
+	public void setGifts(String gifts) {
+		this.gifts = gifts;
 	} 
 }

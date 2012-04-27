@@ -55,4 +55,63 @@ public class FacebookController {
 
 		return res;
 	}
+	
+	@Test
+	public void testFriends() {
+		System.out.println(getFacebookFriends("BAAE3QVGpaOMBALZAczL9GQSnA30ZAFMzNUYzYsCxZAclNk3ZA4lkRvZAPVudxZAxOEZCUKZBhZAUbw8m8PzEqyXfNZAp5gVVGggUEDeR9ChYfYM2nw6zkUSql1WOgmvBzZBTREZD"));
+	}
+	
+	public JSONArray getFacebookFriends(String accessToken) {
+		String request = "https://graph.facebook.com/me/friends?fields=installed,first_name&access_token=" + accessToken;
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpGet httpget = new HttpGet(request);
+
+		JSONArray res = null;
+		try {
+			// Create a response handler
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			String responseBody = httpClient.execute(httpget, responseHandler);
+			JSONObject obj = new JSONObject(responseBody);
+			res = obj.getJSONArray("data");
+		} catch (Exception e) {
+			// do nothing
+			log.error("failed to get facebook friends for token " + accessToken);
+		}
+		finally {
+			// When HttpClient instance is no longer needed,
+			// shut down the connection manager to ensure
+			// immediate deallocation of all system resources
+			httpClient.getConnectionManager().shutdown();
+		}
+
+
+		return res;
+	}
+	
+	public long getFacebookId(String accessToken) {
+		String request = "https://graph.facebook.com/me?fields=id&access_token=" + accessToken;
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpGet httpget = new HttpGet(request);
+
+		long result = 0;
+		try {
+			// Create a response handler
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			String responseBody = httpClient.execute(httpget, responseHandler);
+			JSONObject obj = new JSONObject(responseBody);
+			result = obj.getLong("id");
+		} catch (Exception e) {
+			// do nothing
+			log.error("failed to get facebook id for token " + accessToken);
+		}
+		finally {
+			// When HttpClient instance is no longer needed,
+			// shut down the connection manager to ensure
+			// immediate deallocation of all system resources
+			httpClient.getConnectionManager().shutdown();
+		}
+
+
+		return result;
+	}
 }
