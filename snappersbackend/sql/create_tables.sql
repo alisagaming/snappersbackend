@@ -25,7 +25,7 @@ create table players (
 
 create table promo_codes (
 	promo_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	promo_code VARCHAR(255),
+	promo_code VARCHAR(255) UNIQUE KEY,
 	valid_till DATETIME,
 	promo_hints INT default 3
 );

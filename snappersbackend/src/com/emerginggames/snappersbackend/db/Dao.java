@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.emerginggames.snappersbackend.Friend;
 import com.emerginggames.snappersbackend.Player;
+import com.emerginggames.snappersbackend.PromoCode;
 
 
 public class Dao {
@@ -147,6 +148,7 @@ public class Dao {
 				p.setUserDefaults(rst.getString("user_defaults"));
 				p.setDollarsSpent(rst.getInt("dollars_spent"));
 				p.setGifts(rst.getString("gifts"));
+				p.setPromoCodeUsed(rst.getString("promo_code_used"));
 			}
 		} catch (SQLException e) {
 			log.error("SQLException: " + e.getMessage());
@@ -200,6 +202,68 @@ public class Dao {
 				}
 		}		
 		return ok;
+	}
+	
+	public boolean updatePlayersPromoCodeUsed(Player p) {
+		String q = "update players set " +
+				" promo_code_used = ? " +
+				" where facebook_id = ?";
+		PreparedStatement stmt = null;
+		boolean ok = false;
+		try {
+			stmt = c.prepareStatement(q);
+			stmt.setString(1, p.getPromoCodeUsed());
+			stmt.setLong(2, p.getFacebookId());
+			stmt.executeUpdate();
+			ok = true;
+		} catch (SQLException e) {
+			log.error("SQLException: " + e.getMessage());
+		} finally {
+			if (stmt != null)
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					log.error("SQLException: " + e.getMessage());
+				}
+		}		
+		return ok;
+	}
+	
+	public PromoCode loadPromoCode(String code) {
+		String q = "select * from promo_codes\n" +
+				" where promo_code = ?";
+		ResultSet rst = null;
+		PreparedStatement stmt = null;
+		PromoCode p = null;
+		
+		try {
+			stmt = c.prepareStatement(q);
+			stmt.setString(1, code);
+			
+			rst = stmt.executeQuery();
+			if (rst.next()) {
+				p = new PromoCode();
+				p.setValidTill(rst.getDate("valid_till"));
+				p.setPromoHints(rst.getInt("promo_hints"));
+				p.setPromoCode(rst.getString("promo_code"));
+			}
+		} catch (SQLException e) {
+			log.error("SQLException: " + e.getMessage());
+		} finally {
+			if (rst != null)
+				try {
+					rst.close();
+				} catch (SQLException e) {
+					log.error("SQLException: " + e.getMessage());
+				}
+			if (stmt != null)
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					log.error("SQLException: " + e.getMessage());
+				}
+		}
+		return p;
 	}
 	
 	public void getXpOfFriends(ArrayList<Friend> friends) {

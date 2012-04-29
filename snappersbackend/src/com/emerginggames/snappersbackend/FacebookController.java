@@ -207,7 +207,7 @@ public class FacebookController {
 			}
 		}*/
 		
-		//System.out.println(getCodeForFacebookId(100001737369611L));
+		System.out.println(getCodeForFacebookId(100001737369611L));
 		//System.out.println(getFacebookIdForCode(getCodeForFacebookId(100001737369611L)));
 	}
 }

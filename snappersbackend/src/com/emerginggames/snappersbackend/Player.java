@@ -20,7 +20,7 @@ public class Player {
 	private int hintCount;
 	private int xpCount;
 	private int xpLevel;
-	private int promoId;
+	private String promoCodeUsed;
 	private String userDefaults;
 	private String accessToken;
 	private String gifts;
@@ -221,14 +221,6 @@ public class Player {
 		this.xpLevel = xpLevel;
 	}
 
-	public int getPromoId() {
-		return promoId;
-	}
-
-	public void setPromoId(int promoId) {
-		this.promoId = promoId;
-	}
-
 	public String getAccessToken() {
 		return accessToken;
 	}
@@ -259,6 +251,14 @@ public class Player {
 
 	public void setDollarsSpent(int dollarsSpent) {
 		this.dollarsSpent = dollarsSpent;
+	}
+
+	public String getPromoCodeUsed() {
+		return promoCodeUsed;
+	}
+
+	public void setPromoCodeUsed(String promoCodeUsed) {
+		this.promoCodeUsed = promoCodeUsed;
 	}
 
 }

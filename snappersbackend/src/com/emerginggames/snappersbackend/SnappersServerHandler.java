@@ -310,7 +310,68 @@ public class SnappersServerHandler extends AbstractHandler
 	}
 
 	public void promo(HttpServletRequest request,HttpServletResponse response) throws IOException {
+		String accessToken = request.getParameter("access_token");
+		if (accessToken == null) {
+			error(response, "invalid access token");
+			return;
+		}
+
+		String code = request.getParameter("code");
+		if (code == null) {
+			error(response, "invalid code");
+			return;
+		}
+
 		
+		long facebookId = FacebookController.getFacebookController().getFacebookId(accessToken);
+		if (facebookId == 0) {
+			error(response, "invalid access_token");
+			return;
+		}
+		
+		
+		Dao dao = null;
+		Player me = null;
+		try {
+			dao = new Dao();
+			
+			me = dao.loadPlayer(facebookId);
+			
+			if (me.getPromoCodeUsed() != null) {
+				error(response, "Promo code already used.");
+				dao.close();
+				return;
+			}
+			
+			PromoCode promoCode = dao.loadPromoCode(code);
+			if (promoCode != null) {
+				me.setPromoCodeUsed(code);
+				dao.updatePlayersPromoCodeUsed(me);
+				response.getWriter().println(new PromoOkMessage(promoCode.getPromoHints()));
+			} else {
+				long fbId2 = FacebookController.getFacebookController().getFacebookIdForCode(code);
+				if (fbId2 == facebookId) {
+					error(response, "Can't use own code.");
+					dao.close();
+					return;
+				}
+				
+				Player p2 = dao.loadPlayer(fbId2);
+				if (p2 != null) {
+					me.setPromoCodeUsed(code);
+					dao.updateGift(me.getFacebookId(), p2.getFacebookId());
+					dao.updatePlayersPromoCodeUsed(me);
+					response.getWriter().println(new PromoOkMessage(1));
+				} else {
+					error(response, "No such code.");
+				}
+			}
+			
+			dao.close();
+		} catch (SQLException e) {
+			log.error("can't update gift");
+			error(response, "unexpected error");
+		}	
 	}
 
 	public void error(HttpServletResponse response, String description) throws IOException {
