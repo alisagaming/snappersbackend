@@ -58,7 +58,7 @@ public class SnappersServerHandler extends AbstractHandler
 			if (dbPlayer == null) {
 				log.debug("inserting player " + player.getFacebookId());
 				dao.insertPlayer(player);
-				msg = new SyncOkMessage(null);
+				msg = new SyncOkMessage(player.toJSON());
 			} else {
 				boolean needsUpdate = false;
 				
@@ -71,6 +71,7 @@ public class SnappersServerHandler extends AbstractHandler
 					player.setXpCount(dbPlayer.getXpCount());
 					player.setHintCount(dbPlayer.getHintCount());
 					player.setUserDefaults(dbPlayer.getUserDefaults());
+					player.setDollarsSpent(dbPlayer.getDollarsSpent());
 				} else {
 					needsUpdate = true;
 				}
@@ -89,38 +90,6 @@ public class SnappersServerHandler extends AbstractHandler
 			return;
 		}
 		response.getWriter().println(msg);
-	}
-	
-	public void scores(HttpServletRequest request,HttpServletResponse response) throws IOException {
-		StringBuffer jb = new StringBuffer();
-		String line = null;
-		try {
-			BufferedReader reader = request.getReader();
-			while ((line = reader.readLine()) != null)
-				jb.append(line);
-		} catch (Exception e) { 
-			error(response, "Error parsing request data");
-			return;
-		}
-
-		JSONObject jsonObject;
-		try {
-			jsonObject = new JSONObject(jb.toString());
-			log.debug("jsonObject = " + jsonObject);
-		} catch (JSONException e) {
-			error(response, "Error parsing JSON request string");
-			throw new IOException("Error parsing JSON request string");
-		}
-		
-		try {
-			JSONArray jsonIds = jsonObject.getJSONArray("ids");
-			log.debug("jsonIds = " + jsonIds);
-			response.getWriter().println("{ \"type\": \"ScoresOkMessage\", \"data\": [ { \"facebook_id\": 100001737369611, \"xp_count\": 57104 } ] }");
-		} catch (JSONException e) {
-			error(response, "Error parsing JSON request string");
-			throw new IOException("Error parsing JSON request string");
-		}
-
 	}
 	
 	public void friends(HttpServletRequest request,HttpServletResponse response) throws IOException {
@@ -206,6 +175,140 @@ public class SnappersServerHandler extends AbstractHandler
 		}
 	}
 
+	public void invite(HttpServletRequest request,HttpServletResponse response) throws IOException {
+		StringBuffer jb = new StringBuffer();
+		String line = null;
+		try {
+			BufferedReader reader = request.getReader();
+			while ((line = reader.readLine()) != null)
+				jb.append(line);
+		} catch (Exception e) { 
+			error(response, "Error parsing request data");
+			return;
+		}
+
+		JSONObject jsonObject;
+		String accessToken;
+		String message;
+		long inviteTo = 0;
+		try {
+			jsonObject = new JSONObject(jb.toString());
+			accessToken = jsonObject.getString("access_token");
+			if (accessToken == null) {
+				error(response, "invalid access token");
+				return;
+			}
+			
+			message = jsonObject.getString("message");
+			log.debug("message: " + message);
+			if (message == null) {
+				error(response, "invalid message");
+				return;
+			}
+
+			inviteTo = jsonObject.getLong("invite_to");
+
+			
+		} catch (JSONException e) {
+			error(response, "Error parsing JSON request string");
+			throw new IOException("Error parsing JSON request string");
+		}
+		
+		long inviteFrom = FacebookController.getFacebookController().getFacebookId(accessToken);
+		if (inviteFrom == 0) {
+			error(response, "invalid invite_from parameter");
+			return;
+		}
+		
+		boolean ok = true;
+		if (Configuration.getConfiguration().isPostingToFacebookAllowed()) {
+			ok = FacebookController.getFacebookController().postOnUserWall(accessToken, message, inviteTo);
+		} else
+			log.info("posting to facebook not allowed");
+		
+		if (ok) {
+			try {
+				Dao dao = new Dao();
+				ok = dao.updateInvite(inviteFrom);
+				dao.close();
+			} catch (SQLException e) {
+				log.error("sql exception: " + e);
+				ok = false;
+				return;
+			}
+		}
+	
+		if (ok)
+			response.getWriter().println(new InviteOkMessage());
+		else
+			error(response, "unable to send invite");
+	}
+	
+	public void share(HttpServletRequest request,HttpServletResponse response) throws IOException {
+		StringBuffer jb = new StringBuffer();
+		String line = null;
+		try {
+			BufferedReader reader = request.getReader();
+			while ((line = reader.readLine()) != null)
+				jb.append(line);
+		} catch (Exception e) { 
+			error(response, "Error parsing request data");
+			return;
+		}
+
+		JSONObject jsonObject;
+		String accessToken;
+		String message;
+
+		try {
+			jsonObject = new JSONObject(jb.toString());
+			accessToken = jsonObject.getString("access_token");
+			if (accessToken == null) {
+				error(response, "invalid access token");
+				return;
+			}
+			
+			message = jsonObject.getString("message");
+			log.debug("message: " + message);
+			if (message == null) {
+				error(response, "invalid message");
+				return;
+			}
+		} catch (JSONException e) {
+			error(response, "Error parsing JSON request string");
+			throw new IOException("Error parsing JSON request string");
+		}
+		
+		long myFacebookId = FacebookController.getFacebookController().getFacebookId(accessToken);
+		if (myFacebookId == 0) {
+			error(response, "invalid access token");
+			return;
+		}
+
+		boolean ok = true;
+		if (Configuration.getConfiguration().isPostingToFacebookAllowed()) {
+			ok = FacebookController.getFacebookController().postOnUserWall(accessToken, message, myFacebookId);
+		} else
+			log.info("posting to facebook not allowed");
+		
+		if (ok) {
+			try {
+				Dao dao = new Dao();
+				ok = dao.updateShare(myFacebookId);
+				dao.close();
+			} catch (SQLException e) {
+				log.error("sql exception: " + e);
+				ok = false;
+				return;
+			}
+		}
+	
+		if (ok)
+			response.getWriter().println(new ShareOkMessage());
+		else
+			error(response, "unable to share");
+	}
+
 	public void promo(HttpServletRequest request,HttpServletResponse response) throws IOException {
 		
 	}
@@ -228,6 +331,10 @@ public class SnappersServerHandler extends AbstractHandler
         	friends(request,response);
         else if (baseRequest.getMethod().equals("GET") && methodName.equalsIgnoreCase("gift"))
         	gift(request,response);
+        else if (baseRequest.getMethod().equals("POST") && methodName.equalsIgnoreCase("invite"))
+        	invite(request, response);
+        else if (baseRequest.getMethod().equals("POST") && methodName.equalsIgnoreCase("share"))
+        	share(request, response);
         else if (baseRequest.getMethod().equals("GET") && methodName.equalsIgnoreCase("promo"))
         	promo(request, response);
         else

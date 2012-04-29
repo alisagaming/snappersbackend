@@ -7,4 +7,11 @@
     "password" : "Hyd7eGr1",
     "url" : "jdbc:mysql://snappersdb.cnci7wugcjof.us-east-1.rds.amazonaws.com:3306/snappersdb"
   },
+
+  "allow_posting_to_fb": "false",
+
+  "apple_appstore_url": "http://bit.ly/snappersappstore",
+
+  "app_image_url": "http://s3.amazonaws.com/snappers2/Icon512.png"
+  
 }

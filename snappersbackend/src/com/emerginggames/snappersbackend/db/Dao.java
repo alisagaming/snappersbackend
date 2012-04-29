@@ -145,6 +145,7 @@ public class Dao {
 				p.setXpLevel(rst.getInt("xp_level"));
 				p.setHintCount(rst.getInt("hint_count"));
 				p.setUserDefaults(rst.getString("user_defaults"));
+				p.setDollarsSpent(rst.getInt("dollars_spent"));
 				p.setGifts(rst.getString("gifts"));
 			}
 		} catch (SQLException e) {
@@ -172,6 +173,7 @@ public class Dao {
 				" xp_count = ?, " +
 				" xp_level = ?, " +
 				" user_defaults = ?, " +
+				" dollars_spent = ?, " +
 				" last_played_date = now(), " +
 				" gifts = NULL" +
 				" where facebook_id = ?";
@@ -183,7 +185,8 @@ public class Dao {
 			stmt.setInt(2, p.getXpCount());
 			stmt.setInt(3, p.getXpLevel());
 			stmt.setString(4, p.getUserDefaults());
-			stmt.setLong(5, p.getFacebookId());
+			stmt.setInt(5, p.getDollarsSpent());
+			stmt.setLong(6, p.getFacebookId());
 			stmt.executeUpdate();
 			ok = true;
 		} catch (SQLException e) {
@@ -238,6 +241,50 @@ public class Dao {
 					log.error("SQLException: " + e.getMessage());
 				}
 		}		
+	}
+	
+	public boolean updateInvite(long invite_from) {
+		String q = "update players set invites_sent_count = invites_sent_count + 1 where facebook_id = " + invite_from;
+		PreparedStatement stmt = null;
+		
+		boolean ok = false;
+		try {
+			stmt = c.prepareStatement(q);
+			stmt.executeUpdate();			
+			ok = true;
+		} catch (SQLException e) {
+			log.error("SQLException: " + e.getMessage());
+		} finally {
+			if (stmt != null)
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					log.error("SQLException: " + e.getMessage());
+				}
+		}		
+		return ok;		
+	}
+	
+	public boolean updateShare(long facebookId) {
+		String q = "update players set shares_count = shares_count + 1 where facebook_id = " + facebookId;
+		PreparedStatement stmt = null;
+		
+		boolean ok = false;
+		try {
+			stmt = c.prepareStatement(q);
+			stmt.executeUpdate();			
+			ok = true;
+		} catch (SQLException e) {
+			log.error("SQLException: " + e.getMessage());
+		} finally {
+			if (stmt != null)
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					log.error("SQLException: " + e.getMessage());
+				}
+		}		
+		return ok;		
 	}
 	
 	public boolean updateGift(long gift_from, long gift_to) {

@@ -13,11 +13,13 @@ create table players (
 	hint_count INT default 3,
 	gifts_sent_count INT default 0,
 	invites_sent_count INT default 0,
+	shares_count INT default 0,
+	dollars_spent INT default 0,
 	gifts TEXT,
 	platform VARCHAR(255),
 	device VARCHAR(255),
 	version VARCHAR(255),
-	promo_id INT,
+	promo_code_used VARCHAR(255),
 	user_defaults TEXT
 );
 

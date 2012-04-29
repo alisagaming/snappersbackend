@@ -24,6 +24,7 @@ public class Player {
 	private String userDefaults;
 	private String accessToken;
 	private String gifts;
+	private int dollarsSpent;
 	
 	public static Player parseFromJSON(JSONObject json) {
 		Player player = new Player();
@@ -47,8 +48,12 @@ public class Player {
 				player.setHintCount(json.getInt("hint_count"));
 			else
 				return null;
-			
-			
+
+			if (json.has("dollars_spent"))
+				player.setDollarsSpent(json.getInt("dollars_spent"));
+			else
+				return null;
+
 			JSONObject maxUnlockedLevelForPackDict = new JSONObject();
 			for (int i = 1; i <= LevelPacksCount; i++) {
 				if (json.has("max_unlocked_level_for_pack"+i)) {
@@ -102,10 +107,12 @@ public class Player {
 	public JSONObject toJSON() {
 		JSONObject json = new JSONObject();
 		try {
+			json.put("code", FacebookController.getFacebookController().getCodeForFacebookId(facebookId));
 			json.put("hint_count", getHintCount());
 			json.put("xp_count", getXpCount());
 			json.put("xp_level", getXpLevel());
 			json.put("gifts", getGifts());
+			json.put("dollars_spent", getDollarsSpent());
 			JSONObject maxUnlockedLevelForPackDict = new JSONObject(getUserDefaults());
 			for (int i = 1; i <= LevelPacksCount; i++) {
 				if (maxUnlockedLevelForPackDict.has(""+i)) {
@@ -244,5 +251,14 @@ public class Player {
 
 	public void setGifts(String gifts) {
 		this.gifts = gifts;
-	} 
+	}
+
+	public int getDollarsSpent() {
+		return dollarsSpent;
+	}
+
+	public void setDollarsSpent(int dollarsSpent) {
+		this.dollarsSpent = dollarsSpent;
+	}
+
 }
