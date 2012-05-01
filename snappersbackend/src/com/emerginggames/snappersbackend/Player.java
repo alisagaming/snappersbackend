@@ -2,10 +2,13 @@ package com.emerginggames.snappersbackend;
 
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Player {
+	private static Logger log = Logger.getLogger(Player.class);
+	
 	private final static int LevelPacksCount = 5;
 	
 	private int playerId;
@@ -120,6 +123,7 @@ public class Player {
 				}
 			}
 		} catch (JSONException e) {
+			log.error("JSON Exception " + e);
 			return null;
 		}
 		return json;
