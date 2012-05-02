@@ -69,7 +69,7 @@ public class FacebookController {
 	}
 	
 	public JSONArray getFacebookFriends(String accessToken) {
-		String request = "https://graph.facebook.com/me/friends?fields=installed,first_name&access_token=" + accessToken;
+		String request = "https://graph.facebook.com/me/friends?fields=installed,first_name&access_token=" + accessToken + "&limit=5000";
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpGet httpget = new HttpGet(request);
 
