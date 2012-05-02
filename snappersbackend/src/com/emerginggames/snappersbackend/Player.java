@@ -10,6 +10,7 @@ public class Player {
 	private static Logger log = Logger.getLogger(Player.class);
 	
 	private final static int LevelPacksCount = 5;
+	private final static int PremiumLevelPacksCount = 1;
 	
 	private int playerId;
 	private long facebookId;
@@ -61,6 +62,11 @@ public class Player {
 			for (int i = 1; i <= LevelPacksCount; i++) {
 				if (json.has("max_unlocked_level_for_pack"+i)) {
 					maxUnlockedLevelForPackDict.put(""+i, json.getInt("max_unlocked_level_for_pack"+i));
+				}
+			}
+			for (int i = 1; i <= PremiumLevelPacksCount; i++) {
+				if (json.has("max_unlocked_level_for_packP"+i)) {
+					maxUnlockedLevelForPackDict.put("P"+i, json.getInt("max_unlocked_level_for_packP"+i));
 				}
 			}
 			player.setUserDefaults(maxUnlockedLevelForPackDict.toString());
@@ -120,6 +126,11 @@ public class Player {
 			for (int i = 1; i <= LevelPacksCount; i++) {
 				if (maxUnlockedLevelForPackDict.has(""+i)) {
 					json.put("max_unlocked_level_for_pack"+i, maxUnlockedLevelForPackDict.getInt(""+i));
+				}
+			}
+			for (int i = 1; i <= PremiumLevelPacksCount; i++) {
+				if (maxUnlockedLevelForPackDict.has("P"+i)) {
+					json.put("max_unlocked_level_for_packP"+i, maxUnlockedLevelForPackDict.getInt("P"+i));
 				}
 			}
 		} catch (JSONException e) {
